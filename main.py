@@ -154,14 +154,14 @@ def Priority_on_CarAdded(Priority):
 #-----------------------------mainly action high volumn Case-----------------------------------------
 def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
     #print("start")
-
-    append_car = random.uniform(min_nor_car_range,max_nor_car_range)
-    append_car = {"width":append_car , "type" : "regular"}
-    Box.append(append_car)
+    for _ in range(10):
+        append_car = random.uniform(min_nor_car_range,max_nor_car_range)
+        append_car = {"width":append_car , "type" : "regular"}
+        Box.append(append_car)
     while not Stack_state.is_set():
         CarSpawnerChance = random.uniform(0 , 1)
         CarSpawnRate = 0.15
-        Saturation = 9
+        Saturation = 11
         #Adjust CarRate Later.
         if ((onMajor*CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight)/Saturation) > CarSpawnRate:
            # print("inside")
@@ -219,7 +219,7 @@ def FirstCrossLine():
     #CarStackingThread2.join()
     #CarStackingThread3.join()
     #CarStackingThread4.join()
-    time.sleep(30)
+    time.sleep(10)
     print(EmergencyCar_Count_lane_one[0], EmergencyCar_Count_lane_two[0] ,EmergencyCar_Count_lane_three[0],EmergencyCar_Count_lane_four[0])
     print("start")
     TrafficVolumeNThread =  threading.Thread(target=traffic_volumeN_generate)
