@@ -40,7 +40,7 @@ EmergencyCar_Count_lane_one ,EmergencyCar_Count_lane_two ,EmergencyCar_Count_lan
 EmergencyCar_Count_lane_one2 ,EmergencyCar_Count_lane_two2 ,EmergencyCar_Count_lane_three2 ,EmergencyCar_Count_lane_four2  = [0] , [0] , [0] , [0] 
 #There will be only one lane can be True , True is mean GreenLight 
 #                          major            sub           major            sub
-crossRoad =  [[0,None], [True,"Major",Major_lane_one,EmergencyCar_Count_lane_one], [False,"Sub",Sub_lane_one,EmergencyCar_Count_lane_two], [True,"Major",Major_lane_two,EmergencyCar_Count_lane_three], [False,"Sub",Sub_lane_two,EmergencyCar_Count_lane_four]]
+crossRoad =  [[0,None], [True,"Major",Major_lane_one,EmergencyCar_Count_lane_one], [False,"Sub",Sub_lane_one,EmergencyCar_Count_lane_two], [False,"Major",Major_lane_two,EmergencyCar_Count_lane_three], [False,"Sub",Sub_lane_two,EmergencyCar_Count_lane_four]]
 #Cross one and two Major will connected.
 crossRoad2 = [[0,None],[True,"Major",Major_lane_one2 ,EmergencyCar_Count_lane_one2] ,[False,"Sub", Major_lane_two2 ,EmergencyCar_Count_lane_two2] ,[True,"Major", Sub_lane_one2 ,EmergencyCar_Count_lane_three2] , [False,"Sub", Sub_lane_two2,EmergencyCar_Count_lane_four2]] #-----------------------Time---------------------#
 
@@ -96,10 +96,10 @@ TrafficVolumeW = 0
 Places = random.choice(Place_list) # random place
 print(Places)
 #Vehicle per hours
-TimeCycle = 60
+TimeCycle = 120
 def traffic_volumeN_generate():
     global TrafficVolumeN
-    Twominutes = 1
+    Twominutes = 10
     while True:
         TrafficVolumeN = (len(crossRoad[1][2]) / TimeStacked) * TimeFactor * Place_List_Weight[Places] * LocalTimeWeight
         time.sleep(Twominutes)
@@ -107,21 +107,21 @@ def traffic_volumeN_generate():
 
 def traffic_volumeS_generate():
     global TrafficVolumeS
-    Twominutes = 1
+    Twominutes = 10
     while True:
         TrafficVolumeS = (len(crossRoad[3][2]) / TimeStacked) * TimeFactor * Place_List_Weight[Places] * LocalTimeWeight
         time.sleep(Twominutes)
 
 def traffic_volumeE_generate():
     global TrafficVolumeE
-    Twominutes = 1
+    Twominutes = 10
     while True:
         TrafficVolumeE = (len(crossRoad[2][2]) / TimeStacked) * TimeFactor * Place_List_Weight[Places] * LocalTimeWeight
         time.sleep(Twominutes)
 
 def traffic_volumeW_generate():
     global TrafficVolumeW
-    Twominutes = 1
+    Twominutes = 10
     while True:
         TrafficVolumeW = (len(crossRoad[4][2]) / TimeStacked) * TimeFactor * Place_List_Weight[Places] * LocalTimeWeight
         time.sleep(Twominutes)
@@ -157,9 +157,9 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
     while not Stack_state.is_set():
         CarSpawnerChance = random.uniform(0 , 1)
         CarSpawnRate = 0.15
-        #print((CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight))
+        Saturation = 4.5
         #Adjust CarRate Later.
-        if (onMajor*CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight) > CarSpawnRate:
+        if ((onMajor*CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight)/Saturation) > CarSpawnRate:
            # print("inside")
             SpecialCars = random_Priority() 
             if SpecialCars :
@@ -178,45 +178,14 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
                 append_car = {"width":append_car , "type" : "regular"}
                 Box.append(append_car)
                                    
-        time.sleep(1.5)
+        time.sleep(2)
 TimeExtra = 1
-q_table = np.zeros((2,2))
-
-alpha = 0.1 
-gamma = 0.9
-epsilon = 0.1
-
-def action_choosen(state):
-    if np.random.rand() < epsilon:
-
-        return np.random.choice([0,1])
-    else:
-
-        return np.argmax(q_table[state])
-
-def GreenLightTimeExtra(data = {} , reward=0 ):
-    global q_table,TimeExtra
-    current_state = 0 if data['crossRoad1'] == 0 and data['crossRoad2'] == 0 else 1
-
-    action = action_choosen(current_state)
-
-    if action == 0 :
-        TimeExtra -= 0.1
-    else:
-        TimeExtra += 0.1
-
-    new_state = 0 if data["crossRoad1"] == 0 and data["crossRoad2"] == 0 else 1
-
-    q_table[current_state,action] = q_table[current_state,action] + alpha * (reward + gamma * np.max(q_table[new_state]) - q_table[current_state,action])
-
-    return action
-
 
 def GreenLightTime(TrafficVolume , onMajor):
     #print(TrafficVolumeS+TrafficVolumeW+TrafficVolumeE+TrafficVolumeN)
     #((TrafficVolumeE if TrafficVolumeE > TrafficVolumeW else TrafficVolumeW)+(TrafficVolumeS if TrafficVolumeS > TrafficVolumeN else TrafficVolumeN))
     
-    GreenLight = (TrafficVolume / (TrafficVolumeN + TrafficVolumeW + TrafficVolumeE + TrafficVolumeS )) * TimeCycle *0.8 
+    GreenLight = (TrafficVolume / (TrafficVolumeN + TrafficVolumeW + TrafficVolumeE + TrafficVolumeS )) * TimeCycle *1 
     if GreenLight <=120 :
         return GreenLight
     else:
@@ -233,9 +202,9 @@ def FirstCrossLine():
     #initial 
     Stack_setUp.clear()
     CarStackingThread1 = threading.Thread(target=CarStacking , args=(crossRoad[1][2],Stack_setUp,1  ,EmergencyCar_Count_lane_one  , 1 ,))
-    CarStackingThread2 = threading.Thread(target=CarStacking , args=(crossRoad[2][2],Stack_setUp,0.7,EmergencyCar_Count_lane_two , 2 ,))
+    CarStackingThread2 = threading.Thread(target=CarStacking , args=(crossRoad[2][2],Stack_setUp,0.9,EmergencyCar_Count_lane_two , 2 ,))
     CarStackingThread3 = threading.Thread(target=CarStacking , args=(crossRoad[3][2],Stack_setUp,1  ,EmergencyCar_Count_lane_three , 3,))
-    CarStackingThread4 = threading.Thread(target=CarStacking , args=(crossRoad[4][2],Stack_setUp,0.7,EmergencyCar_Count_lane_four , 4,))
+    CarStackingThread4 = threading.Thread(target=CarStacking , args=(crossRoad[4][2],Stack_setUp,0.9,EmergencyCar_Count_lane_four , 4,))
 
     CarStackingThread1.start()
     CarStackingThread2.start()
@@ -274,25 +243,181 @@ def FirstCrossLine():
     while not forever.is_set():
 
         #After Green Light turning into Yellow Light for cooldown into RedLight 
-        if crossRoad[1][0] and crossRoad[3][0]:
+        if crossRoad[1][0]:
             #loop until turn into yellow light.
             #switch Sub and Major.
             MajorSwitch.set()
 
-            GreenLight1 = GreenLightTime(TrafficVolumeN,1.2)
-            GreenLight2 = GreenLightTime(TrafficVolumeS,1.2)
-            GreenLight = GreenLight1 if GreenLight1 > GreenLight2 else GreenLight2
+            GreenLight = GreenLightTime(TrafficVolumeN,1.2)
             
             print(GreenLight)
             switch = threading.Event()
             EmergencyCar = threading.Event()
             def switchoff(Greenlights):
                 time.sleep(Greenlights)
-                if not  EmergencyCar_Count_lane_one[0] and not  EmergencyCar_Count_lane_three[0]:
+                if not  EmergencyCar_Count_lane_one[0] :
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
-                        if not  EmergencyCar_Count_lane_one[0] and not  EmergencyCar_Count_lane_three[0] :
-                            print(  EmergencyCar_Count_lane_one[0] ,  EmergencyCar_Count_lane_three[0])
+                        if not  EmergencyCar_Count_lane_one[0] :
+                            print(  EmergencyCar_Count_lane_one[0] )
+                            EmergencyCar.set()
+                        time.sleep(1)
+                EmergencyCar.clear()
+                switch.set()
+                print("switch off because over 120 seconds")
+                
+            TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
+            TimeCountdown.start()
+           # TimeCountdown.join()
+            #our Light system no longer show time.
+            print("GreenLight on Major Road")
+            IsGreenLight = threading.Event()
+            def ReleaseCars():
+                while not IsGreenLight.is_set():
+                    #releaseCount = random.randint(1,3)
+                    if not  EmergencyCar_Count_lane_one[0]:
+
+                        crossRoad[1][2].pop(0)
+                        #if len(crossRoad[1][2]) >= 3 : 
+                        #    for _ in range(releaseCount):
+                        #        crossRoad[1][2].pop(0)
+                        #elif len(crossRoad[1][2]) < 3 and len(crossRoad[1][2]) > 0:
+                        #    crossRoad[1][2].pop(0)
+                    else:
+
+                        if crossRoad[1][2][0]["type"] == "Special":
+                            crossRoad[1][2].pop(0)
+                            EmergencyCar_Count_lane_one[0]  -= 1
+                        else:
+                            crossRoad[1][2].pop(0)
+#                        if len(crossRoad[1][2]) >= 3 : 
+#                            for _ in range(releaseCount):
+#                                if crossRoad[1][2][0]["type"] == "Special":
+#                                    crossRoad[1][2].pop(0)
+#                                    EmergencyCar_Count_lane_one[0]  -= 1
+#                                else:
+#                                    crossRoad[1][2].pop(0)
+#                        elif len(crossRoad[1][2]) < 3 and len(crossRoad[1][2]) > 0:
+#                            if crossroad[1][2][0]["type"] == "special":
+#                                crossroad[1][2].pop(0)
+#                                emergencycar_count_lane_one[0] -= 1
+#                            else:
+#                                crossroad[1][2].pop(0)
+
+#-----------------------------------------------------------------------------
+                    time.sleep(2)
+            CarsMoveStart = threading.Thread(target=ReleaseCars)
+            CarsMoveStart.start()
+            while not switch.is_set():
+                crossRoad[1][0] = False 
+                crossRoad[2][0] = True 
+                print(f"Road one :{len(crossRoad[1][2])}")
+                #print("There Some Special Car" if crossRoad[1][3] > 0 or crossRoad[3][3] > 0 else "")
+                print(EmergencyCar_Count_lane_one[0] )
+                #switch will change after achieve one of these goal.
+                #-------------
+                #Argency on others lane
+                
+                #Priority  limit to 0
+
+
+                time.sleep(1)
+            IsGreenLight.set()
+            CarsMoveStart.join()
+            print("yellow Light 3 seconds")
+            time.sleep(3)
+            print("Switch!")
+        elif crossRoad[2][0] :
+            MajorSwitch.clear()
+            #loop until turn into yellow light.
+            #switch Sub and Major.
+            GreenLight = GreenLightTime(TrafficVolumeE,1)
+            print(GreenLight)
+            switch2 = threading.Event()
+            def switchoff(Greenlights):
+                time.sleep(Greenlights)
+                if not EmergencyCar_Count_lane_two[0]  :
+                    while not EmergencyCar.is_set():
+                        print("time reserve for emergency")
+                        if not EmergencyCar_Count_lane_two[0]  :
+                            print(EmergencyCar_Count_lane_two[0]  )
+                            EmergencyCar.set()
+                        time.sleep(1)
+                EmergencyCar.clear()
+                switch2.set()
+                print("switch off because over 120 seconds")
+            TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
+            TimeCountdown.start()
+            #TimeCountdown.join()
+            #our Light system no longer show time.
+            print("GreenLight on Major Road")
+            IsGreenLight = threading.Event()
+            def ReleaseCars():
+                while not IsGreenLight.is_set():
+                    #releaseCount = random.randint(1,3)
+#-----------------------------------------------------------------------------
+                    if not EmergencyCar_Count_lane_two[0] :
+
+                        crossRoad[2][2].pop(0)
+                       # if len(crossRoad[2][2]) >= 3:
+                       #     for _ in range(releaseCount):
+                       #         crossRoad[2][2].pop(0)
+                       # elif len(crossRoad[2][2]) < 3 and len(crossRoad[2][2]) > 0:
+                       #     crossRoad[2][2].pop(0)
+                    else:
+
+                        if crossRoad[2][2][0]["type"] == "Special":
+                            crossRoad[2][2].pop(0)
+                            EmergencyCar_Count_lane_two[0]  -= 1
+                        else:
+                            crossRoad[2][2].pop(0)
+#                        if len(crossRoad[2][2]) >= 3:
+#                            for _ in range(releaseCount):
+#                                if crossRoad[2][2][0]["type"] == "Special":
+#                                    crossRoad[2][2].pop(0)
+#                                    EmergencyCar_Count_lane_two[0]  -= 1
+#                                else:
+#                                    crossRoad[2][2].pop(0)
+#                        elif len(crossRoad[2][2]) < 3 and len(crossRoad[2][2]) > 0:
+#                            if crossRoad[2][2][0]["type"] == "Special":
+#                                crossRoad[2][2].pop(0)
+#                                EmergencyCar_Count_lane_two[0] -= 1
+#                            else:
+#                                crossRoad[2][2].pop(0)
+                    time.sleep(2)
+            CarsMoveStart = threading.Thread(target=ReleaseCars )
+            CarsMoveStart.start()
+            while not switch2.is_set():
+                
+                crossRoad[2][0] = False 
+                crossRoad[3][0] = True 
+                
+                print(f"Road two :{len(crossRoad[2][2])}")
+                #print("There Some Special Car" if crossRoad[2][3] > 0 or crossRoad[4][3] else "")
+                print(EmergencyCar_Count_lane_two[0])
+                time.sleep(1)
+            IsGreenLight.set()
+            CarsMoveStart.join()
+            print("yellow Light 3 seconds")
+            time.sleep(3)
+            print("Switch!")
+        elif crossRoad[3][0]:
+            #loop until turn into yellow light.
+            #switch Sub and Major.
+            MajorSwitch.set()
+
+            GreenLight = GreenLightTime(TrafficVolumeS,1.2)
+            
+            print(GreenLight)
+            switch = threading.Event()
+            EmergencyCar = threading.Event()
+            def switchoff(Greenlights):
+                time.sleep(Greenlights)
+                if EmergencyCar_Count_lane_three[0]:
+                    while not EmergencyCar.is_set():
+                        print("time reserve for emergency")
+                        if EmergencyCar_Count_lane_three[0] :
+                            print(  EmergencyCar_Count_lane_three[0])
                             EmergencyCar.set()
                         time.sleep(1)
                 EmergencyCar.clear()
@@ -309,64 +434,45 @@ def FirstCrossLine():
                 
                 #global crossRoad[1][2],crossRoad[3][2]
                 while not IsGreenLight.is_set():
-                    releaseCount = random.randint(1,2)
+                   # releaseCount = random.randint(1,3)
 #-----------------------------------------------------------------------------
                     if not EmergencyCar_Count_lane_three[0] :
 
-                        if len(crossRoad[3][2]) >= 2:
-                            for _ in range(releaseCount):
-                                crossRoad[3][2].pop(0)
-                        elif len(crossRoad[3][2]) < 2 and len(crossRoad[3][2]) > 0:
+                        crossRoad[3][2].pop(0)
+                     #   if len(crossRoad[3][2]) >= 3:
+                     #       for _ in range(releaseCount):
+                     #           crossRoad[3][2].pop(0)
+                     #   elif len(crossRoad[3][2]) < 3 and len(crossRoad[3][2]) > 0:
+                     #       crossRoad[3][2].pop(0)
+                    else:
+
+                        if crossRoad[3][2][0]["type"] == "Special":
                             crossRoad[3][2].pop(0)
-                    else:
-
-                        if len(crossRoad[3][2]) >= 2:
-                            for _ in range(releaseCount):
-                                if crossRoad[3][2][0]["type"] == "Special":
-                                    crossRoad[3][2].pop(0)
-                                    EmergencyCar_Count_lane_three[0] -= 1
-                                else:
-                                    crossRoad[3][2].pop(0)
-                        elif len(crossRoad[3][2]) < 2 and len(crossRoad[3][2]) > 0:
-                                if crossRoad[3][2][0]["type"] == "Special":
-                                    crossRoad[3][2].pop(0)
-                                    EmergencyCar_Count_lane_three[0] -= 1
-                                else:
-                                    crossRoad[3][2].pop(0)
-#-----------------------------------------------------------------------------
-                    if not  EmergencyCar_Count_lane_one[0]:
-
-                        if len(crossRoad[1][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                crossRoad[1][2].pop(0)
-                        elif len(crossRoad[1][2]) < 2 and len(crossRoad[1][2]) > 0:
-                            crossRoad[1][2].pop(0)
-                    else:
-
-                        if len(crossRoad[1][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                if crossRoad[1][2][0]["type"] == "Special":
-                                    crossRoad[1][2].pop(0)
-                                    EmergencyCar_Count_lane_one[0]  -= 1
-                                else:
-                                    crossRoad[1][2].pop(0)
-                        elif len(crossRoad[1][2]) < 2 and len(crossRoad[1][2]) > 0:
-                            if crossRoad[1][2][0]["type"] == "Special":
-                                crossRoad[1][2].pop(0)
-                                EmergencyCar_Count_lane_one[0] -= 1
-                            else:
-                                crossRoad[1][2].pop(0)
-
-#-----------------------------------------------------------------------------
-                    time.sleep(1)
+                            EmergencyCar_Count_lane_three[0] -= 1
+                        else:
+                            crossRoad[3][2].pop(0)
+#                        if len(crossRoad[3][2]) >= 3:
+#                            for _ in range(releaseCount):
+#                                if crossRoad[3][2][0]["type"] == "Special":
+#                                    crossRoad[3][2].pop(0)
+#                                    EmergencyCar_Count_lane_three[0] -= 1
+#                                else:
+#                                    crossRoad[3][2].pop(0)
+#                        elif len(crossRoad[3][2]) < 3 and len(crossRoad[3][2]) > 0:
+#                                if crossRoad[3][2][0]["type"] == "Special":
+#                                    crossRoad[3][2].pop(0)
+#                                    EmergencyCar_Count_lane_three[0] -= 1
+#                                else:
+#                                    crossRoad[3][2].pop(0)
+                    time.sleep(2)
             CarsMoveStart = threading.Thread(target=ReleaseCars)
             CarsMoveStart.start()
             while not switch.is_set():
-                crossRoad[1][0] ,crossRoad[3][0] = False , False
-                crossRoad[2][0] , crossRoad[4][0] = True , True
-                print(f"Road one :{len(crossRoad[1][2])}\nRoad three :{len(crossRoad[3][2])}")
+                crossRoad[3][0] = False
+                crossRoad[4][0] = True 
+                print(f"Road three :{len(crossRoad[3][2])}")
                 #print("There Some Special Car" if crossRoad[1][3] > 0 or crossRoad[3][3] > 0 else "")
-                print(EmergencyCar_Count_lane_one[0] , EmergencyCar_Count_lane_three[0])
+                print (EmergencyCar_Count_lane_three[0])
                 #switch will change after achieve one of these goal.
                 #-------------
                 #Argency on others lane
@@ -375,31 +481,25 @@ def FirstCrossLine():
 
 
                 time.sleep(1)
-            if len(crossRoad[1][2]) > 0 and len(crossRoad[3][2]) > 0:
-                GreenLightTimeExtra( data={'crossRoad1':len(crossRoad[1][2]) , 'crossRoad2':len(crossRoad[3][2])} , reward = -10)
-            else:
-                GreenLightTimeExtra(data={'crossRoad1':0,'crossRoad2':0} , reward = 10)
             IsGreenLight.set()
             CarsMoveStart.join()
             print("yellow Light 3 seconds")
             time.sleep(3)
             print("Switch!")
-        elif crossRoad[2][0] and crossRoad[4][0]:
+        elif crossRoad[4][0]:
             MajorSwitch.clear()
             #loop until turn into yellow light.
             #switch Sub and Major.
-            GreenLight1 = GreenLightTime(TrafficVolumeE,1)
-            GreenLight2 = GreenLightTime(TrafficVolumeW,1)
-            GreenLight = GreenLight1 if GreenLight1 > GreenLight2 else GreenLight2
+            GreenLight = GreenLightTime(TrafficVolumeW,1)
             print(GreenLight)
             switch2 = threading.Event()
             def switchoff(Greenlights):
                 time.sleep(Greenlights)
-                if not EmergencyCar_Count_lane_two[0]  and not EmergencyCar_Count_lane_four[0] :
+                if EmergencyCar_Count_lane_four[0] :
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
-                        if not EmergencyCar_Count_lane_two[0]  and not EmergencyCar_Count_lane_four[0] :
-                            print(EmergencyCar_Count_lane_two[0]  , EmergencyCar_Count_lane_four[0] )
+                        if EmergencyCar_Count_lane_four[0] :
+                            print(EmergencyCar_Count_lane_four[0] )
                             EmergencyCar.set()
                         time.sleep(1)
                 EmergencyCar.clear()
@@ -413,271 +513,48 @@ def FirstCrossLine():
             IsGreenLight = threading.Event()
             def ReleaseCars():
                 while not IsGreenLight.is_set():
-                    releaseCount = random.randint(1,2)
-#-----------------------------------------------------------------------------
-                    if not EmergencyCar_Count_lane_two[0] :
-
-                        if len(crossRoad[2][2]) >= 2:
-                            for _ in range(releaseCount):
-                                crossRoad[2][2].pop(0)
-                        elif len(crossRoad[2][2]) < 2 and len(crossRoad[2][2]) > 0:
-                            crossRoad[2][2].pop(0)
-                    else:
-
-                        if len(crossRoad[2][2]) >= 2:
-                            for _ in range(releaseCount):
-                                if crossRoad[2][2][0]["type"] == "Special":
-                                    crossRoad[2][2].pop(0)
-                                    EmergencyCar_Count_lane_two[0]  -= 1
-                                else:
-                                    crossRoad[2][2].pop(0)
-                        elif len(crossRoad[2][2]) < 2 and len(crossRoad[2][2]) > 0:
-                            if crossRoad[2][2][0]["type"] == "Special":
-                                crossRoad[2][2].pop(0)
-                                EmergencyCar_Count_lane_two[0] -= 1
-                            else:
-                                crossRoad[2][2].pop(0)
-#-----------------------------------------------------------------------------
+                   # releaseCount = random.randint(1,3)
                     if not  EmergencyCar_Count_lane_four[0]:
 
-                        if len(crossRoad[4][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                crossRoad[4][2].pop(0)
-                        elif len(crossRoad[4][2]) < 2 and len(crossRoad[4][2]) > 0:
-                            crossRoad[4][2].pop(0)
+                        crossRoad[4][2].pop(0)
+                       # if len(crossRoad[4][2]) >= 3 : 
+                       #     for _ in range(releaseCount):
+                       #         crossRoad[4][2].pop(0)
+                       # elif len(crossRoad[4][2]) < 3 and len(crossRoad[4][2]) > 0:
+                       #     crossRoad[4][2].pop(0)
                     else:
 
-                        if len(crossRoad[4][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                if crossRoad[4][2][0]["type"] == "Special":
-                                    crossRoad[4][2].pop(0)
-                                    EmergencyCar_Count_lane_four[0]  -= 1
-                                else:
-                                    crossRoad[4][2].pop(0)
-                        elif len(crossRoad[4][2]) < 2 and len(crossRoad[4][2]) > 0:
-                            if crossRoad[4][2][0]["type"] == "Special":
-                                crossRoad[4][2].pop(0)
-                                EmergencyCar_Count_lane_four[0]  -= 1
-                            else:
-                                crossRoad[4][2].pop(0)
+                        if crossRoad[4][2][0]["type"] == "Special":
+                            crossRoad[4][2].pop(0)
+                            EmergencyCar_Count_lane_four[0]  -= 1
+                        else:
+                            crossRoad[4][2].pop(0)
+#                        if len(crossRoad[4][2]) >= 3 : 
+#                            for _ in range(releaseCount):
+#                                if crossRoad[4][2][0]["type"] == "Special":
+#                                    crossRoad[4][2].pop(0)
+#                                    EmergencyCar_Count_lane_four[0]  -= 1
+#                                else:
+#                                    crossRoad[4][2].pop(0)
+#                        elif len(crossRoad[4][2]) < 3 and len(crossRoad[4][2]) > 0:
+#                            if crossRoad[4][2][0]["type"] == "Special":
+#                                crossRoad[4][2].pop(0)
+#                                EmergencyCar_Count_lane_four[0]  -= 1
+#                            else:
+#                                crossRoad[4][2].pop(0)
 
 #-----------------------------------------------------------------------------
-                    time.sleep(1)
+                    time.sleep(2)
             CarsMoveStart = threading.Thread(target=ReleaseCars )
             CarsMoveStart.start()
             while not switch2.is_set():
                 
-                crossRoad[2][0] ,crossRoad[4][0] = False , False
-                crossRoad[1][0] , crossRoad[3][0] = True , True
+                crossRoad[4][0] = False
+                crossRoad[1][0] = True
                 
-                print(f"Road two :{len(crossRoad[2][2])}\nRoad four :{len(crossRoad[4][2])}")
+                print(f"Road four :{len(crossRoad[4][2])}")
                 #print("There Some Special Car" if crossRoad[2][3] > 0 or crossRoad[4][3] else "")
-                print(EmergencyCar_Count_lane_two[0]  , EmergencyCar_Count_lane_four[0] )
-                time.sleep(1)
-            IsGreenLight.set()
-            CarsMoveStart.join()
-            print("yellow Light 3 seconds")
-            time.sleep(3)
-            print("Switch!")
-        elif crossRoad[1][0] and crossRoad[3][0]:
-            #loop until turn into yellow light.
-            #switch Sub and Major.
-            MajorSwitch.set()
-
-            GreenLight1 = GreenLightTime(TrafficVolumeN,1.2)
-            GreenLight2 = GreenLightTime(TrafficVolumeS,1.2)
-            GreenLight = GreenLight1 if GreenLight1 > GreenLight2 else GreenLight2
-            
-            print(GreenLight)
-            switch = threading.Event()
-            EmergencyCar = threading.Event()
-            def switchoff(Greenlights):
-                time.sleep(Greenlights)
-                if not  EmergencyCar_Count_lane_one[0] and not  EmergencyCar_Count_lane_three[0]:
-                    while not EmergencyCar.is_set():
-                        print("time reserve for emergency")
-                        if not  EmergencyCar_Count_lane_one[0] and not  EmergencyCar_Count_lane_three[0] :
-                            print(  EmergencyCar_Count_lane_one[0] ,  EmergencyCar_Count_lane_three[0])
-                            EmergencyCar.set()
-                        time.sleep(1)
-                EmergencyCar.clear()
-                switch.set()
-                print("switch off because over 120 seconds")
-                
-            TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
-            TimeCountdown.start()
-           # TimeCountdown.join()
-            #our Light system no longer show time.
-            print("GreenLight on Major Road")
-            IsGreenLight = threading.Event()
-            def ReleaseCars():
-                
-                #global crossRoad[1][2],crossRoad[3][2]
-                while not IsGreenLight.is_set():
-                    releaseCount = random.randint(1,2)
-#-----------------------------------------------------------------------------
-                    if not EmergencyCar_Count_lane_three[0] :
-
-                        if len(crossRoad[3][2]) >= 2:
-                            for _ in range(releaseCount):
-                                crossRoad[3][2].pop(0)
-                        elif len(crossRoad[3][2]) < 2 and len(crossRoad[3][2]) > 0:
-                            crossRoad[3][2].pop(0)
-                    else:
-
-                        if len(crossRoad[3][2]) >= 2:
-                            for _ in range(releaseCount):
-                                if crossRoad[3][2][0]["type"] == "Special":
-                                    crossRoad[3][2].pop(0)
-                                    EmergencyCar_Count_lane_three[0] -= 1
-                                else:
-                                    crossRoad[3][2].pop(0)
-                        elif len(crossRoad[3][2]) < 2 and len(crossRoad[3][2]) > 0:
-                                if crossRoad[3][2][0]["type"] == "Special":
-                                    crossRoad[3][2].pop(0)
-                                    EmergencyCar_Count_lane_three[0] -= 1
-                                else:
-                                    crossRoad[3][2].pop(0)
-#-----------------------------------------------------------------------------
-                    if not  EmergencyCar_Count_lane_one[0]:
-
-                        if len(crossRoad[1][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                crossRoad[1][2].pop(0)
-                        elif len(crossRoad[1][2]) < 2 and len(crossRoad[1][2]) > 0:
-                            crossRoad[1][2].pop(0)
-                    else:
-
-                        if len(crossRoad[1][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                if crossRoad[1][2][0]["type"] == "Special":
-                                    crossRoad[1][2].pop(0)
-                                    EmergencyCar_Count_lane_one[0]  -= 1
-                                else:
-                                    crossRoad[1][2].pop(0)
-                        elif len(crossRoad[1][2]) < 2 and len(crossRoad[1][2]) > 0:
-                            if crossRoad[1][2][0]["type"] == "Special":
-                                crossRoad[1][2].pop(0)
-                                EmergencyCar_Count_lane_one[0] -= 1
-                            else:
-                                crossRoad[1][2].pop(0)
-
-#-----------------------------------------------------------------------------
-                    time.sleep(1)
-            CarsMoveStart = threading.Thread(target=ReleaseCars)
-            CarsMoveStart.start()
-            while not switch.is_set():
-                crossRoad[1][0] ,crossRoad[3][0] = False , False
-                crossRoad[2][0] , crossRoad[4][0] = True , True
-                print(f"Road one :{len(crossRoad[1][2])}\nRoad three :{len(crossRoad[3][2])}")
-                #print("There Some Special Car" if crossRoad[1][3] > 0 or crossRoad[3][3] > 0 else "")
-                print(EmergencyCar_Count_lane_one[0] , EmergencyCar_Count_lane_three[0])
-                #switch will change after achieve one of these goal.
-                #-------------
-                #Argency on others lane
-                
-                #Priority  limit to 0
-
-
-                time.sleep(1)
-            if len(crossRoad[1][2]) > 0 and len(crossRoad[3][2]) > 0:
-                GreenLightTimeExtra( data={'crossRoad1':len(crossRoad[1][2]) , 'crossRoad2':len(crossRoad[3][2])} , reward = -10)
-            else:
-                GreenLightTimeExtra(data={'crossRoad1':0,'crossRoad2':0} , reward = 10)
-            IsGreenLight.set()
-            CarsMoveStart.join()
-            print("yellow Light 3 seconds")
-            time.sleep(3)
-            print("Switch!")
-        elif crossRoad[2][0] and crossRoad[4][0]:
-            MajorSwitch.clear()
-            #loop until turn into yellow light.
-            #switch Sub and Major.
-            GreenLight1 = GreenLightTime(TrafficVolumeE,1)
-            GreenLight2 = GreenLightTime(TrafficVolumeW,1)
-            GreenLight = GreenLight1 if GreenLight1 > GreenLight2 else GreenLight2
-            print(GreenLight)
-            switch2 = threading.Event()
-            def switchoff(Greenlights):
-                time.sleep(Greenlights)
-                if not EmergencyCar_Count_lane_two[0]  and not EmergencyCar_Count_lane_four[0] :
-                    while not EmergencyCar.is_set():
-                        print("time reserve for emergency")
-                        if not EmergencyCar_Count_lane_two[0]  and not EmergencyCar_Count_lane_four[0] :
-                            print(EmergencyCar_Count_lane_two[0]  , EmergencyCar_Count_lane_four[0] )
-                            EmergencyCar.set()
-                        time.sleep(1)
-                EmergencyCar.clear()
-                switch2.set()
-                print("switch off because over 120 seconds")
-            TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
-            TimeCountdown.start()
-            #TimeCountdown.join()
-            #our Light system no longer show time.
-            print("GreenLight on Major Road")
-            IsGreenLight = threading.Event()
-            def ReleaseCars():
-                while not IsGreenLight.is_set():
-                    releaseCount = random.randint(1,2)
-#-----------------------------------------------------------------------------
-                    if not EmergencyCar_Count_lane_two[0] :
-
-                        if len(crossRoad[2][2]) >= 2:
-                            for _ in range(releaseCount):
-                                crossRoad[2][2].pop(0)
-                        elif len(crossRoad[2][2]) < 2 and len(crossRoad[2][2]) > 0:
-                            crossRoad[2][2].pop(0)
-                    else:
-
-                        if len(crossRoad[2][2]) >= 2:
-                            for _ in range(releaseCount):
-                                if crossRoad[2][2][0]["type"] == "Special":
-                                    crossRoad[2][2].pop(0)
-                                    EmergencyCar_Count_lane_two[0]  -= 1
-                                else:
-                                    crossRoad[2][2].pop(0)
-                        elif len(crossRoad[2][2]) < 2 and len(crossRoad[2][2]) > 0:
-                            if crossRoad[2][2][0]["type"] == "Special":
-                                crossRoad[2][2].pop(0)
-                                EmergencyCar_Count_lane_two[0] -= 1
-                            else:
-                                crossRoad[2][2].pop(0)
-#-----------------------------------------------------------------------------
-                    if not  EmergencyCar_Count_lane_four[0]:
-
-                        if len(crossRoad[4][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                crossRoad[4][2].pop(0)
-                        elif len(crossRoad[4][2]) < 2 and len(crossRoad[4][2]) > 0:
-                            crossRoad[4][2].pop(0)
-                    else:
-
-                        if len(crossRoad[4][2]) >= 2 : 
-                            for _ in range(releaseCount):
-                                if crossRoad[4][2][0]["type"] == "Special":
-                                    crossRoad[4][2].pop(0)
-                                    EmergencyCar_Count_lane_four[0]  -= 1
-                                else:
-                                    crossRoad[4][2].pop(0)
-                        elif len(crossRoad[4][2]) < 2 and len(crossRoad[4][2]) > 0:
-                            if crossRoad[4][2][0]["type"] == "Special":
-                                crossRoad[4][2].pop(0)
-                                EmergencyCar_Count_lane_four[0]  -= 1
-                            else:
-                                crossRoad[4][2].pop(0)
-
-#-----------------------------------------------------------------------------
-                    time.sleep(1)
-            CarsMoveStart = threading.Thread(target=ReleaseCars )
-            CarsMoveStart.start()
-            while not switch2.is_set():
-                
-                crossRoad[2][0] ,crossRoad[4][0] = False , False
-                crossRoad[1][0] , crossRoad[3][0] = True , True
-                
-                print(f"Road two :{len(crossRoad[2][2])}\nRoad four :{len(crossRoad[4][2])}")
-                #print("There Some Special Car" if crossRoad[2][3] > 0 or crossRoad[4][3] else "")
-                print(EmergencyCar_Count_lane_two[0]  , EmergencyCar_Count_lane_four[0] )
+                print(EmergencyCar_Count_lane_four[0] )
                 time.sleep(1)
             IsGreenLight.set()
             CarsMoveStart.join()
