@@ -138,7 +138,7 @@ def random_Priority():
     random_Firetruck = random.uniform(0, 1) # random 0 or 1
     random_Police = random.uniform(0, 1) # random 0 or 1
     box = []
-    if random_Ambulance <= 0.09:
+    if random_Ambulance <= 0.001:
         print("Ambulance added")
         box.append({"width":2.41 , "type" : "Special"})
     #if random_Firetruck <= 0.005:
@@ -160,7 +160,7 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
         Box.append(append_car)
     while not Stack_state.is_set():
         CarSpawnerChance = random.uniform(0 , 1)
-        CarSpawnRate = 0.15
+        CarSpawnRate = Place_List_Weight[Places]*LocalTimeWeight*0.88*0.9/11
         Saturation = 11
         #Adjust CarRate Later.
         if ((onMajor*CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight)/Saturation) > CarSpawnRate:
@@ -182,7 +182,7 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
                 append_car = {"width":append_car , "type" : "regular"}
                 Box.append(append_car)
                                    
-        time.sleep(1)
+        time.sleep(2)
 TimeExtra = 1
 
 def GreenLightTime(TrafficVolume , onMajor):
@@ -340,6 +340,7 @@ def FirstCrossLine():
             switch2 = threading.Event()
             def switchoff(Greenlights):
                 time.sleep(Greenlights)
+                
                 if not EmergencyCar_Count_lane_two[0]  :
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
