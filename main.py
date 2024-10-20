@@ -154,10 +154,14 @@ def Priority_on_CarAdded(Priority):
 #-----------------------------mainly action high volumn Case-----------------------------------------
 def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
     #print("start")
+
+    append_car = random.uniform(min_nor_car_range,max_nor_car_range)
+    append_car = {"width":append_car , "type" : "regular"}
+    Box.append(append_car)
     while not Stack_state.is_set():
         CarSpawnerChance = random.uniform(0 , 1)
         CarSpawnRate = 0.15
-        Saturation = 4.5
+        Saturation = 9
         #Adjust CarRate Later.
         if ((onMajor*CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight)/Saturation) > CarSpawnRate:
            # print("inside")
@@ -178,7 +182,7 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
                 append_car = {"width":append_car , "type" : "regular"}
                 Box.append(append_car)
                                    
-        time.sleep(2)
+        time.sleep(1)
 TimeExtra = 1
 
 def GreenLightTime(TrafficVolume , onMajor):
