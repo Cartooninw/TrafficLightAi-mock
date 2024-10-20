@@ -138,7 +138,7 @@ def random_Priority():
     random_Firetruck = random.uniform(0, 1) # random 0 or 1
     random_Police = random.uniform(0, 1) # random 0 or 1
     box = []
-    if random_Ambulance <= 0.09:
+    if random_Ambulance <= 0.001:
         print("Ambulance added")
         box.append({"width":2.41 , "type" : "Special"})
     #if random_Firetruck <= 0.005:
@@ -160,7 +160,7 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
         Box.append(append_car)
     while not Stack_state.is_set():
         CarSpawnerChance = random.uniform(0 , 1)
-        CarSpawnRate = 0.15
+        CarSpawnRate = Place_List_Weight[Places]*LocalTimeWeight*0.88*0.9/11
         Saturation = 11
         #Adjust CarRate Later.
         if ((onMajor*CarSpawnerChance * Place_List_Weight[Places] * LocalTimeWeight)/Saturation) > CarSpawnRate:
@@ -252,13 +252,19 @@ def FirstCrossLine():
             #switch Sub and Major.
             MajorSwitch.set()
 
-            GreenLight = GreenLightTime(TrafficVolumeN,1.2)
+            GreenLight = [GreenLightTime(TrafficVolumeN,1.2)]
             
             print(GreenLight)
             switch = threading.Event()
             EmergencyCar = threading.Event()
             def switchoff(Greenlights):
-                time.sleep(Greenlights)
+                while True :
+                    if Greenlights[0] > 0 and len(crossRoad[1][2]) > 0:
+                        Greenlights[0] -= 1
+                        time.sleep(1)
+                    else :
+                        break
+                # time.sleep(Greenlights)
                 if not  EmergencyCar_Count_lane_one[0] :
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
@@ -335,11 +341,16 @@ def FirstCrossLine():
             MajorSwitch.clear()
             #loop until turn into yellow light.
             #switch Sub and Major.
-            GreenLight = GreenLightTime(TrafficVolumeE,1)
+            GreenLight = [GreenLightTime(TrafficVolumeE,1)]
             print(GreenLight)
             switch2 = threading.Event()
             def switchoff(Greenlights):
-                time.sleep(Greenlights)
+                while True :
+                    if Greenlights[0] > 0 and len(crossRoad[2][2]) > 0:
+                        Greenlights[0] -= 1
+                        time.sleep(1)
+                    else :
+                        break                
                 if not EmergencyCar_Count_lane_two[0]  :
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
@@ -410,13 +421,18 @@ def FirstCrossLine():
             #switch Sub and Major.
             MajorSwitch.set()
 
-            GreenLight = GreenLightTime(TrafficVolumeS,1.2)
+            GreenLight = [GreenLightTime(TrafficVolumeS,1.2)]
             
             print(GreenLight)
             switch = threading.Event()
             EmergencyCar = threading.Event()
             def switchoff(Greenlights):
-                time.sleep(Greenlights)
+                while True :
+                    if Greenlights[0] > 0 and len(crossRoad[3][2]) > 0:
+                        Greenlights[0] -= 1
+                        time.sleep(1)
+                    else :
+                        break
                 if EmergencyCar_Count_lane_three[0]:
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
@@ -494,11 +510,16 @@ def FirstCrossLine():
             MajorSwitch.clear()
             #loop until turn into yellow light.
             #switch Sub and Major.
-            GreenLight = GreenLightTime(TrafficVolumeW,1)
+            GreenLight = [GreenLightTime(TrafficVolumeW,1)]
             print(GreenLight)
             switch2 = threading.Event()
             def switchoff(Greenlights):
-                time.sleep(Greenlights)
+                while True :
+                    if Greenlights[0] > 0 and len(crossRoad[4][2]) > 0:
+                        Greenlights[0] -= 1
+                        time.sleep(1)
+                    else :
+                        break
                 if EmergencyCar_Count_lane_four[0] :
                     while not EmergencyCar.is_set():
                         print("time reserve for emergency")
