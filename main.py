@@ -182,7 +182,7 @@ def CarStacking(Box , Stack_state ,onMajor, onSpecialCar , number):
                 append_car = {"width":append_car , "type" : "regular"}
                 Box.append(append_car)
                                    
-        time.sleep(1)
+        time.sleep(1.5)
 TimeExtra = 1
 
 def GreenLightTime(TrafficVolume , onMajor):
@@ -274,13 +274,12 @@ def FirstCrossLine():
                         time.sleep(1)
                 EmergencyCar.clear()
                 switch.set()
-                print("switch off because over 120 seconds")
+                print("Switch Off!")
                 
             TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
             TimeCountdown.start()
            # TimeCountdown.join()
             #our Light system no longer show time.
-            print("GreenLight on Major Road")
             IsGreenLight = threading.Event()
             def ReleaseCars():
                 while not IsGreenLight.is_set():
@@ -360,12 +359,11 @@ def FirstCrossLine():
                         time.sleep(1)
                 EmergencyCar.clear()
                 switch2.set()
-                print("switch off because over 120 seconds")
+                print("switch off")
             TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
             TimeCountdown.start()
             #TimeCountdown.join()
             #our Light system no longer show time.
-            print("GreenLight on Major Road")
             IsGreenLight = threading.Event()
             def ReleaseCars():
                 while not IsGreenLight.is_set():
@@ -442,13 +440,12 @@ def FirstCrossLine():
                         time.sleep(1)
                 EmergencyCar.clear()
                 switch.set()
-                print("switch off because over 120 seconds")
+                print("switch off ")
                 
             TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
             TimeCountdown.start()
            # TimeCountdown.join()
             #our Light system no longer show time.
-            print("GreenLight on Major Road")
             IsGreenLight = threading.Event()
             def ReleaseCars():
                 
@@ -529,12 +526,11 @@ def FirstCrossLine():
                         time.sleep(1)
                 EmergencyCar.clear()
                 switch2.set()
-                print("switch off because over 120 seconds")
+                print("switch off ")
             TimeCountdown = threading.Thread(target=switchoff , args=(GreenLight,))
             TimeCountdown.start()
             #TimeCountdown.join()
             #our Light system no longer show time.
-            print("GreenLight on Major Road")
             IsGreenLight = threading.Event()
             def ReleaseCars():
                 while not IsGreenLight.is_set():
